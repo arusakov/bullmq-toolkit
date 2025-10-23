@@ -12,9 +12,9 @@ jobs:
     strategy:
       matrix:
         redis:
-          - image: redis:7.4.1-alpine
+          - image: redis:8.0-alpine
             coverage: true
-          - image: redis:8.0-M02-alpine
+          - image: redis:8.2-alpine
             coverage: false
 
     runs-on: ubuntu-latest
