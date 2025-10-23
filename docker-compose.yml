@@ -1,7 +1,7 @@
-version: '3.9'
+version: "3.9"
 services:
   redis:
-    image: redis:7.2.5-alpine
+    image: redis:8.2.2-alpine
     restart: always
     ports:
-      - '127.0.0.1:6379:6379'
+      - "127.0.0.1:6379:6379"
