@@ -13,14 +13,14 @@ describe('Queue manager', () => {
 
   let isListenerCalled = false
   let isListenerCalled2 = false
-  const listenerOn = (queue: Queue, job: Job) => {
+  const listenerOn = (job: Job) => {
     isListenerCalled = true
-    console.log(`Job=${job.name} is waiting in queue=${queue.name}`)
+    console.log(`Job=${job.name} is waiting in queue=${job.queueName}`)
   }
 
-  const listenerOn2 = (queue: Queue, job: Job) => {
+  const listenerOn2 = (job: Job) => {
     isListenerCalled2 = true
-    console.log(`№2 Job=${job.name} is waiting in queue=${queue.name}`)
+    console.log(`№2 Job=${job.name} is waiting in queue=${job.queueName}`)
   }
 
   let queueManager: QueueManager<JobNames, QueueNames, DefaultJob<JobNames>>
@@ -127,7 +127,9 @@ describe('Queue manager', () => {
 
   it('listener on', async () => {
 
-    queueManager.on('waiting', listenerOn)
+    queueManager.getQueues().forEach(q => {
+      q.on('waiting', listenerOn)
+    })
 
     await queueManager.addJob(newJobForQueue1)
     await queueManager.addJob(newJobForQueue2)
@@ -143,7 +145,9 @@ describe('Queue manager', () => {
 
   it('listener on many 2 cb for event', async () => {
 
-    queueManager.on('waiting', listenerOn2)
+    queueManager.getQueues().forEach(q => {
+      q.on('waiting', listenerOn2)
+    })
 
     await queueManager.addJob(newJobForQueue1)
     await new Promise(resolve => setTimeout(resolve, 100))
@@ -154,18 +158,14 @@ describe('Queue manager', () => {
     equal(isListenerCalled2, true)
   })
 
-  it('listener off error', () => {
-    throws(
-      () => queueManager.off('waiting', () => { }),
-      Error,
-      'Listener not found'
-    )
-  })
+
 
   it('listener off', async () => {
     isListenerCalled = false
     isListenerCalled2 = false
-    queueManager.off('waiting', listenerOn)
+    queueManager.getQueues().forEach(q => {
+      q.off('waiting', listenerOn)
+    })
 
     await queueManager.addJob(newJobForQueue1)
     await new Promise(resolve => setTimeout(resolve, 100))
@@ -180,9 +180,11 @@ describe('Queue manager', () => {
   it('listener once', async () => {
     let callCount = 0
 
-    queueManager.once('paused', (queue) => {
-      callCount++
-      console.log(`Queue=${queue.name} paused`)
+    queueManager.getQueues().forEach(q => {
+      q.once('paused', () => {
+        callCount++
+        console.log(`Queue=${q.name} paused`)
+      })
     })
 
     await queueManager.getQueue('Queue1').pause()

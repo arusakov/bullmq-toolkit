@@ -31,9 +31,9 @@ describe('Worker manager', () => {
     const newJob: DefaultJob<JobNames> = { name: 'Job1', data: {} }
     type Jobs = JobsType & Pick<Job, 'id' | 'queueName'>
 
-    const listenerOn = (worker: Worker, job: Job) => {
+    const listenerOn = (job: Job) => {
         isListenerCalled = true
-        console.log(`Job=${job.name} active in worker=${worker.name}`)
+        console.log(`Job=${job.name} active in worker=${job.queueName}`)
     }
 
     before(async () => {
@@ -136,54 +136,11 @@ describe('Worker manager', () => {
         equal(isRunning2, true)
     })
 
-    it('listener on', async () => {
-
-        workerManager.on('active', listenerOn)
-        await queueManager.addJob(newJob)
-        await new Promise(resolve => setTimeout(resolve, 2000))
-
-        const listenersArray = workerManager.getWorker('Queue1').listeners('active')
-        equal(listenersArray.length, 1)
-        equal(isListenerCalled, true)
-    })
-
-    it('listener off error', () => {
-        throws(
-            () => workerManager.off('active', () => { }),
-            Error,
-            'Listener not found'
-        )
-    })
-
-    it('listener off', async () => {
-
-        workerManager.off('active', listenerOn)
-
-        queueManager.addJob(newJob)
-        await new Promise(resolve => setTimeout(resolve, 100))
-
-        const listenersArray = queueManager.getQueue('Queue1').listeners('active')
-        equal(listenersArray.length, 0)
-        equal(isListenerCalled, false)
-    })
-
-    it('listener once', async () => {
-        let callCount = 0
-
-        workerManager.once('paused', () => {
-            callCount++;
-            console.log(`Worker paused`)
-        })
-
-        await workerManager.getWorker('Queue1').pause()
-        await workerManager.getWorker('Queue1').pause()
-
-        equal(callCount, 1)
-        await queueManager.getQueue('Queue1').resume()
-    })
 
     it('close all workers', async () => {
-        workerManager.on('closed', (worker) => console.log(`worker=${worker.name} closed`))
+        workerManager.getWorkers().forEach(worker => {
+            worker.on('closed', () => console.log(`worker=${worker.name} closed`))
+        })
         await workerManager.close()
 
         const isClosed1 = workerManager.getWorker('Queue1').isRunning() === false

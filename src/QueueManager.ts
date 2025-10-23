@@ -1,11 +1,5 @@
-import { Queue, QueueListener, Job } from 'bullmq'
+import { Queue } from 'bullmq'
 import type { QueueOptions, RedisConnection, DefaultJobOptions } from 'bullmq'
-
-
-type AddQueueParameter<T extends any[]> = [queue: Queue<any, any, string>, ...T]
-type QueueEventName = keyof QueueListener
-
-type ListenerParametersWithQueue<U extends QueueEventName> = AddQueueParameter<Parameters<QueueListener[U]>>
 
 export type QueueConfig = Partial<QueueOptions> | boolean | undefined | null
 export type Queues<QN extends string> = Record<QN, QueueConfig>
@@ -19,16 +13,6 @@ export type DefaultJob<JN extends string> = {
 export type ConnectionStatus = 'connected' | 'disconnected' | 'closed'
 export type FlowJob<JN extends string> = DefaultJob<JN> & {
   children?: Array<FlowJob<JN>>
-}
-
-const listenerSymbol = Symbol('listenerSymbol')
-
-type QueueFunctionWithSymbol<U extends QueueEventName> = {
-  (...args: ListenerParametersWithQueue<U>): void
-  [listenerSymbol]?: {
-    event: U
-    listeners: Function[]
-  }
 }
 
 export type Options = {}
@@ -66,52 +50,6 @@ export class QueueManager<
     }
   }
 
-  on<U extends QueueEventName>(event: U, listener: QueueFunctionWithSymbol<U>) {
-
-    if (!listener[listenerSymbol]) {
-      listener[listenerSymbol] = {
-        event: event,
-        listeners: [],
-      }
-    }
-
-    for (const queue of Object.values(this.queues) as Queue[]) {
-
-      const wrappedListener: QueueListener[U] = ((...args: Parameters<QueueListener[U]>) => {
-        listener(queue, ...args)
-      }) as QueueListener[U]
-
-      listener[listenerSymbol].listeners.push(wrappedListener)
-      queue.on(event, wrappedListener)
-    }
-  }
-
-  off<U extends QueueEventName>(event: U, listener: QueueFunctionWithSymbol<U>) {
-    if (!listener[listenerSymbol]) {
-      throw new Error('Listener not found')
-    }
-
-    const { listeners } = listener[listenerSymbol]
-
-    for (const [index, queue] of (Object.values(this.queues) as Queue[]).entries()) {
-      const wrappedListener = listeners[index]
-      if (wrappedListener) {
-        queue.off(event, wrappedListener as QueueListener[U])
-      }
-    }
-    listener[listenerSymbol].listeners = []
-  }
-
-
-  once<U extends QueueEventName>(event: U, listener: QueueFunctionWithSymbol<U>) {
-
-    for (const queue of Object.values(this.queues) as Queue[]) {
-      const wrappedListener: QueueListener[U] = ((...args: Parameters<QueueListener[U]>) => {
-        listener(queue, ...args)
-      }) as QueueListener[U]
-      queue.once(event, wrappedListener)
-    }
-  }
 
   async waitUntilReady() {
     if (this.connectionStatus != 'connected') {
@@ -121,7 +59,7 @@ export class QueueManager<
       return
     }
     await Promise.all(
-      Object.values<Queue>(this.queues).map((q) => q.waitUntilReady())
+      this.getQueues().map((q) => q.waitUntilReady())
     )
   }
 
@@ -130,12 +68,16 @@ export class QueueManager<
     this.connectionStatus = 'closed'
 
     await Promise.all(
-      Object.values<Queue>(this.queues).map((q) => { q.close() }))
-
+      this.getQueues().map((q) => { q.close() })
+    )
   }
 
   getQueue(name: QNs) {
     return this.queues[name]
+  }
+
+  getQueues() {
+    return Object.values<Queue>(this.queues)
   }
 
   addJob(job: J) {
