@@ -3,9 +3,9 @@ name: Test
 on:
   push:
     branches:
-      - '*'
+      - "*"
     tags-ignore:
-      - '*'
+      - "*"
 
 jobs:
   test:
@@ -25,20 +25,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: yarn install --frozen-lockfile
+      - run: npm ci
 
-      - run: yarn compile
+      - run: npm run compile
 
       - run: echo "COVERAGE=${{ matrix.redis.coverage }}" >> "$GITHUB_ENV"
 
       - if: env.COVERAGE == 'true'
-        run: yarn test:coverage
+        run: npm run test:coverage
         env:
           REDIS_HOST: redis
           REDIS_PORT: 6379
 
       - if: env.COVERAGE != 'true'
-        run: yarn test:all
+        run: npm run test:all
         env:
           REDIS_HOST: redis
           REDIS_PORT: 6379

@@ -14,13 +14,13 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "24.x"
+          registry-url: "https://registry.npmjs.org"
 
-      - run: yarn install --frozen-lockfile
+      - run: npm ci
 
       - run: |
-          yarn build
+          npm run build
           VERSION='${{ github.ref_name }}'
           PACKAGE_JSON=$(node -p "const p = require('./package'); p.version = '${VERSION:1}'; JSON.stringify(p, null, 2)")
           echo $PACKAGE_JSON > package.json
