@@ -1,6 +1,6 @@
-import { describe, it, before, after, afterEach, beforeEach } from 'node:test'
+import { describe, it, before, after, afterEach } from 'node:test'
 import { equal, throws, rejects } from 'assert'
-import { WorkerOptions, Job, QueueOptions, Worker } from 'bullmq'
+import { WorkerOptions, Job, QueueOptions } from 'bullmq'
 import { WorkerManager, WorkerManagerOptions, Workers } from '../../src/WorkerManager'
 import { DefaultJob, NameToQueue, Queues, QueueManager } from '../../src/QueueManager'
 
@@ -28,13 +28,8 @@ describe('Worker manager', () => {
     const connection = createRedis()
     let workerManager: WorkerManager<JobNames, QueueNames, DefaultJob<JobNames>>
     let queueManager: QueueManager<JobNames, QueueNames, DefaultJob<JobNames>>
-    const newJob: DefaultJob<JobNames> = { name: 'Job1', data: {} }
     type Jobs = JobsType & Pick<Job, 'id' | 'queueName'>
 
-    const listenerOn = (job: Job) => {
-        isListenerCalled = true
-        console.log(`Job=${job.name} active in worker=${job.queueName}`)
-    }
 
     before(async () => {
         await connection.connect()
@@ -126,14 +121,11 @@ describe('Worker manager', () => {
     })
 
     it('run all workers', async () => {
-
         workerManager.run()
 
-        const isRunning1 = workerManager.getWorker('Queue1').isRunning() === true
-        equal(isRunning1, true)
-
-        const isRunning2 = workerManager.getWorker('Queue2').isRunning() === true
-        equal(isRunning2, true)
+        workerManager.getWorkers().forEach(w => {
+            equal(w.isRunning(), true, `Worker ${w.name} is not running!`)
+        })
     })
 
 
@@ -143,11 +135,9 @@ describe('Worker manager', () => {
         })
         await workerManager.close()
 
-        const isClosed1 = workerManager.getWorker('Queue1').isRunning() === false
-        equal(isClosed1, true)
-
-        const isClosed2 = workerManager.getWorker('Queue2').isRunning() === false
-        equal(isClosed2, true)
+        workerManager.getWorkers().forEach(w => {
+            equal(w.isRunning(), false, `Worker ${w.name} is running!`)
+        })
     })
 
     it('close checkConnectionStatus error', () => {

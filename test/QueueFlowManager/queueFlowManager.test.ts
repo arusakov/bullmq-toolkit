@@ -72,14 +72,12 @@ describe('Queue Flow manager', () => {
 
     afterEach(async () => {
 
-        const queue1 = flowQueueManager.getQueue('Queue1')
-        const queue2 = flowQueueManager.getQueue('Queue2')
-
-        await Promise.all([drainQueue(queue1), drainQueue(queue2)])
+        await Promise.all(
+            flowQueueManager.getQueues().map(q => drainQueue(q))
+        )
     })
 
     after(async () => {
-
         await flowQueueManager.close()
         await connection.quit()
     })
