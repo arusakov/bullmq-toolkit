@@ -18,7 +18,7 @@ jobs:
             coverage: false
 
     runs-on: ubuntu-latest
-    container: node:24.10.0-alpine3.19
+    container: node:24.10.0-alpine
     services:
       redis:
         image: ${{ matrix.redis.image }}
