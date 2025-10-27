@@ -1,5 +1,11 @@
 import { Queue } from 'bullmq'
-import type { QueueOptions, RedisConnection, DefaultJobOptions } from 'bullmq'
+import type { QueueOptions, RedisConnection, BaseJobOptions } from 'bullmq'
+
+
+// TODO use this type everywhere
+export type Job<J extends { name: string, data: unknown }> = J & {
+  opts?: BaseJobOptions 
+}
 
 export type QueueConfig = Partial<QueueOptions> | boolean | undefined | null
 export type Queues<QN extends string> = Record<QN, QueueConfig>
@@ -7,7 +13,7 @@ export type NameToQueue<JN extends string, QN extends string> = Record<JN, QN>
 export type DefaultJob<JN extends string> = {
   name: JN
   data: unknown
-  opts?: DefaultJobOptions
+  opts?: BaseJobOptions
 }
 
 export type ConnectionStatus = 'connected' | 'disconnected' | 'closed'
