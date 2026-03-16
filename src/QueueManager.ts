@@ -22,10 +22,10 @@ export type FlowJob<JN extends string> = DefaultJob<JN> & {
 }
 
 export type Options = {
-  prepareJob?: <X>(job: X) => X
+  prepareJob?: <J extends DefaultJob<string>>(job: J) => J
 }
 
-const PREPARE_JOB_DEFAULT = <X>(job: X) => job
+const PREPARE_JOB_DEFAULT = <J extends DefaultJob<string>>(job: J) => job
 
 
 export class QueueManager<
@@ -35,7 +35,7 @@ export class QueueManager<
 > {
   protected queues = {} as Record<QNs, Queue>
   protected connectionStatus: ConnectionStatus = 'disconnected'
-  protected prepareJob: <X>(job: X) => X
+  protected prepareJob: <J extends DefaultJob<string>>(job: J) => J
 
   constructor(
     queuesConfig: Queues<QNs>,
