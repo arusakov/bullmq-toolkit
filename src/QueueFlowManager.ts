@@ -63,7 +63,7 @@ export class QueueFlowManager<
       queueName,
       children: job.children?.map(child => this.resolveQueueNames(child))
     }
-    return resolvedJob
+    return this.prepareJob(resolvedJob)  
   }
 
 }

@@ -20,7 +20,7 @@
     "@types/node": "24.9.1",
     "bullmq": "5.71.0",
     "c8": "11.0.0",
-    "ioredis": "5.10.0",
+    "ioredis": "5.9.3",
     "ts-node": "10.9.2",
     "typescript": "5.9.3"
   },

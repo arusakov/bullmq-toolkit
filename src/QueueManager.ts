@@ -21,7 +21,12 @@ export type FlowJob<JN extends string> = DefaultJob<JN> & {
   children?: Array<FlowJob<JN>>
 }
 
-export type Options = {}
+export type Options = {
+  prepareJob?: <X>(job: X) => X
+}
+
+const PREPARE_JOB_DEFAULT = <X>(job: X) => job
+
 
 export class QueueManager<
   JNs extends string,
@@ -30,6 +35,7 @@ export class QueueManager<
 > {
   protected queues = {} as Record<QNs, Queue>
   protected connectionStatus: ConnectionStatus = 'disconnected'
+  protected prepareJob: <X>(job: X) => X
 
   constructor(
     queuesConfig: Queues<QNs>,
@@ -38,6 +44,7 @@ export class QueueManager<
     protected options: Options = {},
     Connection?: typeof RedisConnection,
   ) {
+    this.prepareJob = options.prepareJob ?? PREPARE_JOB_DEFAULT
     const configIterator = Object.entries<QueueConfig>(queuesConfig)
 
     for (const [name, queueConfig] of configIterator) {
@@ -90,7 +97,8 @@ export class QueueManager<
     this.checkConnectionStatus()
 
     const queueName = this.getQueueNameByJobName(job.name)
-    return this.queues[queueName].add(job.name, job.data, job.opts)
+    const jobToAdd = this.prepareJob(job)
+    return this.queues[queueName].add(jobToAdd.name, jobToAdd.data, jobToAdd.opts)
 
   }
 
@@ -104,7 +112,7 @@ export class QueueManager<
       if (!jobs) {
         jobsPerQueue[queueName] = jobs = []
       }
-      jobs.push(j)
+      jobs.push(this.prepareJob(j))
     }
 
     const added = await Promise.all(
@@ -126,5 +134,4 @@ export class QueueManager<
       throw new Error(`${this.constructor.name} is closed`)
     }
   }
-
 }

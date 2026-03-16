@@ -1,6 +1,6 @@
 import { describe, it, before, after, afterEach } from 'node:test'
-import { equal, throws, rejects } from 'assert'
-import { QueueOptions, Job, Queue } from 'bullmq'
+import { equal,  rejects } from 'node:assert'
+import { QueueOptions, Job } from 'bullmq'
 
 import { QueueManager, DefaultJob, Queues, NameToQueue } from '../../src/QueueManager'
 import { createRedis, sleep } from '../utils'
@@ -34,7 +34,7 @@ describe('Queue manager', () => {
 
     const queues: Queues<QueueNames> = {
       Queue1: {
-        connection: connection,
+        connection,
         defaultJobOptions: {
           attempts: 5
         },
@@ -43,7 +43,7 @@ describe('Queue manager', () => {
     };
 
     const queueOptions: QueueOptions = {
-      connection: connection,
+      connection,
       streams: {
         events: {
           maxLen: 0
