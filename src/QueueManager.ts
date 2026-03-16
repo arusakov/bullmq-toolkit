@@ -25,7 +25,7 @@ export type Options = {
   prepareJob?: <J extends DefaultJob<string>>(job: J) => J
 }
 
-const PREPARE_JOB_DEFAULT = <J extends DefaultJob<string>>(job: J) => job
+const PREPARE_JOB_DEFAULT: NonNullable<Options['prepareJob']> = (job) => job
 
 
 export class QueueManager<
@@ -35,7 +35,7 @@ export class QueueManager<
 > {
   protected queues = {} as Record<QNs, Queue>
   protected connectionStatus: ConnectionStatus = 'disconnected'
-  protected prepareJob: <J extends DefaultJob<string>>(job: J) => J
+  protected prepareJob: NonNullable<Options['prepareJob']>
 
   constructor(
     queuesConfig: Queues<QNs>,
