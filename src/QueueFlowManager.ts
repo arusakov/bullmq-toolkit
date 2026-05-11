@@ -31,29 +31,40 @@ export class QueueFlowManager<
 
 
   async addFlowJob(job: FlowJob<JNs>) {
-    this.checkConnectionStatus()
+    this.checkConnected()
+
     const flowJobWithQueueNames = this.resolveQueueNames(job)
     return this.flowProducer.add(flowJobWithQueueNames)
   }
 
   async addFlowJobs(jobs: FlowJob<JNs>[]) {
-    this.checkConnectionStatus()
+    this.checkConnected()
+
     const flowJobsWithQueueNames = jobs.map(job => this.resolveQueueNames(job))
     return this.flowProducer.addBulk(flowJobsWithQueueNames)
   }
 
   async waitUntilReady() {
+    if (this.connected) {
+      return false
+    }
     await Promise.all([
       super.waitUntilReady(),
       this.flowProducer.waitUntilReady(),
     ])
+    return true
   }
 
   async close() {
+    if (!this.connected) {
+      return false
+    }
+
     await Promise.all([
       super.close(),
       this.flowProducer.close(),
     ])
+    return true
   }
 
   private resolveQueueNames(job: FlowJob<JNs>): FlowJobReal<JNs> {

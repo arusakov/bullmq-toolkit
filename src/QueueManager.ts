@@ -34,7 +34,7 @@ export class QueueManager<
   J extends DefaultJob<JNs>,
 > {
   protected queues = {} as Record<QNs, Queue>
-  protected connectionStatus: ConnectionStatus = 'disconnected'
+  protected connected = false
   protected prepareJob: NonNullable<Options['prepareJob']>
 
   constructor(
@@ -65,24 +65,27 @@ export class QueueManager<
 
 
   async waitUntilReady() {
-    if (this.connectionStatus != 'connected') {
-      this.connectionStatus = 'connected'
-    } else {
-      console.log(`${this.constructor.name} is already connected`)
-      return
+    if (this.connected) {
+      return false
     }
     await Promise.all(
       this.getQueues().map((q) => q.waitUntilReady())
     )
+
+    this.connected = true
+    return true
   }
 
   async close() {
-    this.checkConnectionStatus()
-    this.connectionStatus = 'closed'
-
+    if (!this.connected) {
+      return false
+    }
+    
     await Promise.all(
       this.getQueues().map((q) => { q.close() })
     )
+    this.connected = false
+    return true
   }
 
   getQueue(name: QNs) {
@@ -94,7 +97,7 @@ export class QueueManager<
   }
 
   addJob(job: J) {
-    this.checkConnectionStatus()
+    this.checkConnected()
 
     const queueName = this.getQueueNameByJobName(job.name)
     const jobToAdd = this.prepareJob(job)
@@ -103,7 +106,7 @@ export class QueueManager<
   }
 
   async addJobs(jobs: J[]) {
-    this.checkConnectionStatus()
+    this.checkConnected()
 
     const jobsPerQueue = {} as Record<QNs, J[] | undefined>
     for (const j of jobs) {
@@ -127,11 +130,9 @@ export class QueueManager<
     return this.nameToQueue[name]
   }
 
-  protected checkConnectionStatus() {
-    if (this.connectionStatus === 'disconnected') {
-      throw new Error(`${this.constructor.name} is disconnected`)
-    } else if (this.connectionStatus === 'closed') {
-      throw new Error(`${this.constructor.name} is closed`)
+  protected checkConnected() {
+    if (!this.connected) {
+      throw new Error(`${this.constructor.name} is not connected`)
     }
   }
 }

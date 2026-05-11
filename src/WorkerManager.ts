@@ -11,7 +11,7 @@ export class WorkerManager<
   J extends DefaultJob<JNs>,
 > {
   protected workers = {} as Record<QNs, Worker<any, any, JNs>>
-  protected connectionStatus: ConnectionStatus = 'disconnected'
+  protected running = false
 
   constructor(
     workersConfig: Workers<QNs>,
@@ -40,37 +40,33 @@ export class WorkerManager<
   }
 
   run() {
-    if (this.connectionStatus !== 'connected') {
-      this.connectionStatus = 'connected'
-    } else {
-      console.log(`${this.constructor.name} is already running`)
-      return
+    if (this.running) {
+      return false
     }
+
     for (const w of this.getWorkers()) {
       w.run()
     }
+    this.running = true
+    return true
   }
 
   async waitUntilReady() {
-    if (this.connectionStatus !== 'connected') {
-      this.connectionStatus = 'connected'
-    } else {
-      console.log(`${this.constructor.name} is already running`)
-      return
-    }
-
     await Promise.all(
       this.getWorkers().map((q) => q.waitUntilReady())
     )
   }
 
   async close() {
-    this.checkConnectionStatus()
-    this.connectionStatus = 'closed'
-
+    if (!this.running) {
+      return false
+    }
     await Promise.all(
       this.getWorkers().map((w) => w.close())
     )
+    
+    this.running = false
+    return true
   }
 
   getWorker(name: QNs) {
@@ -79,13 +75,5 @@ export class WorkerManager<
 
   getWorkers() {
     return Object.values<Worker<any, any, JNs>>(this.workers)
-  }
-
-  private checkConnectionStatus() {
-    if (this.connectionStatus === 'disconnected') {
-      throw new Error('WorkerManager is disconnected')
-    } else if (this.connectionStatus === 'closed') {
-      throw new Error('WorkerManager is closed')
-    }
   }
 }

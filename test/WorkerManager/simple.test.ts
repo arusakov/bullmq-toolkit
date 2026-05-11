@@ -1,5 +1,5 @@
 import { describe, it, before, after, afterEach } from 'node:test'
-import { equal, throws, rejects } from 'assert'
+import { equal } from 'assert'
 import { WorkerOptions, Job, QueueOptions } from 'bullmq'
 import { WorkerManager, WorkerManagerOptions, Workers } from '../../src/WorkerManager'
 import { DefaultJob, NameToQueue, Queues, QueueManager } from '../../src/QueueManager'
@@ -45,6 +45,7 @@ describe('Worker manager', () => {
 
         const workerOptions: WorkerOptions = {
             connection: connection,
+            autorun: false,
             removeOnComplete: {
                 count: 0
             },
@@ -91,8 +92,8 @@ describe('Worker manager', () => {
     })
 
     after(async () => {
-
         await queueManager.close()
+        await workerManager.close()
         await connection.quit()
     })
 
@@ -121,7 +122,8 @@ describe('Worker manager', () => {
     })
 
     it('run all workers', async () => {
-        workerManager.run()
+        equal(workerManager.run(), true)
+        equal(workerManager.run(), false)
 
         workerManager.getWorkers().forEach(w => {
             equal(w.isRunning(), true, `Worker ${w.name} is not running!`)
@@ -129,22 +131,20 @@ describe('Worker manager', () => {
     })
 
 
-    it('close all workers', async () => {
+    it('close all workers', async (ctx) => {
+        ctx.plan(2*2)
+
         workerManager.getWorkers().forEach(worker => {
-            worker.on('closed', () => console.log(`worker=${worker.name} closed`))
+            worker.on('closed', () => ctx.assert.ok(true))
         })
         await workerManager.close()
 
         workerManager.getWorkers().forEach(w => {
-            equal(w.isRunning(), false, `Worker ${w.name} is running!`)
+            ctx.assert.equal(w.isRunning(), false, `Worker ${w.name} is running!`)
         })
     })
 
-    it('close checkConnectionStatus error', () => {
-        rejects(
-            async () => await workerManager.close(),
-            Error,
-            'WorkerManager is closed'
-        )
+    it('close', async () => {
+        equal(await workerManager.close(), false)
     })
 })
