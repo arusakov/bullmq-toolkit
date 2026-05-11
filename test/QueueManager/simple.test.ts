@@ -77,12 +77,12 @@ describe('Queue manager', () => {
   })
 
   after(async () => {
-    try {
-      await queueManager.close()
-    } catch {
-      // Do nothing
-    }
+    await queueManager.close()
     await connection.quit()
+  })
+
+  it('waitUntilReady()', async () => {
+    equal(await queueManager.waitUntilReady(), false)
   })
 
   it('Setup options', () => {
