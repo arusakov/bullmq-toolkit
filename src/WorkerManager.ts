@@ -11,7 +11,6 @@ export class WorkerManager<
   J extends DefaultJob<JNs>,
 > {
   protected workers = {} as Record<QNs, Worker<any, any, JNs>>
-  protected running = false
 
   constructor(
     workersConfig: Workers<QNs>,
@@ -40,15 +39,11 @@ export class WorkerManager<
   }
 
   run() {
-    if (this.running) {
-      return false
-    }
-
     for (const w of this.getWorkers()) {
-      w.run()
+      if (!w.isRunning()) {
+        w.run()
+      }
     }
-    this.running = true
-    return true
   }
 
   async waitUntilReady() {
@@ -58,15 +53,9 @@ export class WorkerManager<
   }
 
   async close() {
-    if (!this.running) {
-      return false
-    }
     await Promise.all(
       this.getWorkers().map((w) => w.close())
     )
-    
-    this.running = false
-    return true
   }
 
   getWorker(name: QNs) {

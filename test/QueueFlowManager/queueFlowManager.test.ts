@@ -1,10 +1,10 @@
-import { describe, it, before, after, afterEach, only } from 'node:test'
-import { equal, deepStrictEqual } from 'assert'
+import { describe, it, before, after, afterEach } from 'node:test'
+import { equal, deepStrictEqual } from 'node:assert'
+
 import { QueueOptions, Queue } from 'bullmq'
-import { QueueFlowManager } from '../../src/QueueFlowManager'
+
 import type { DefaultJob, NameToQueue, Options, Queues, FlowJob } from '../../src/QueueManager'
-
-
+import { QueueFlowManager } from '../../src/QueueFlowManager'
 import { createRedis } from '../utils'
 
 describe('Queue Flow manager', () => {

@@ -1,6 +1,8 @@
 import { describe, it, before, after, afterEach } from 'node:test'
-import { equal } from 'assert'
+import { equal } from 'node:assert'
+
 import { WorkerOptions, Job, QueueOptions } from 'bullmq'
+
 import { WorkerManager, WorkerManagerOptions, Workers } from '../../src/WorkerManager'
 import { DefaultJob, NameToQueue, Queues, QueueManager } from '../../src/QueueManager'
 
@@ -122,8 +124,8 @@ describe('Worker manager', () => {
     })
 
     it('run all workers', async () => {
-        equal(workerManager.run(), true)
-        equal(workerManager.run(), false)
+        workerManager.run()
+        workerManager.run()
 
         workerManager.getWorkers().forEach(w => {
             equal(w.isRunning(), true, `Worker ${w.name} is not running!`)
@@ -145,6 +147,7 @@ describe('Worker manager', () => {
     })
 
     it('close', async () => {
-        equal(await workerManager.close(), false)
+       await workerManager.close()
+       await workerManager.close()
     })
 })

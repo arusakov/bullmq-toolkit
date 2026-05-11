@@ -82,7 +82,7 @@ export class QueueManager<
     }
     
     await Promise.all(
-      this.getQueues().map((q) => { q.close() })
+      this.getQueues().map((q) => q.close())
     )
     this.connected = false
     return true
