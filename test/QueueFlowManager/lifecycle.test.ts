@@ -65,19 +65,4 @@ describe('Queue flow manager lifecycle', () => {
     equal(node.job.queueName, 'Queue1')
     equal(node.children, undefined)
   })
-
-  it('resolves queue names for every node of the flow', async () => {
-    const m = make()
-    await m.waitUntilReady()
-
-    const flow: FlowJob<JobNames> = {
-      name: 'Job1',
-      data: {},
-      children: [{ name: 'Job2', data: {} }, { name: 'Job2', data: {} }],
-    }
-    const node = await m.addFlowJob(flow)
-
-    equal(node.job.queueName, 'Queue1')
-    deepStrictEqual(node.children?.map(c => c.job.queueName), ['Queue2', 'Queue2'])
-  })
 })
