@@ -14,10 +14,12 @@ Small, typed helper classes for managing **many [BullMQ](https://docs.bullmq.io)
 ## Installation
 
 ```bash
-npm install bullmq-toolkit bullmq
+npm install bullmq-toolkit bullmq ioredis
 ```
 
-Requires `bullmq` `^6.0.0`.
+Requires `bullmq` `^6.0.0` (peer dependency). The Redis driver is **not** installed by this package:
+use `ioredis`, `node-redis` or Bun's built-in client and pass it via the `connection` option.
+BullMQ detects the driver automatically.
 
 > Upgrading from 0.x? See [Migration](#migration-from-0x).
 
