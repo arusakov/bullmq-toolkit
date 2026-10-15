@@ -6,7 +6,6 @@ export type ManagedWorker<JN extends string> = Worker<any, any, JN, IQueueBacken
 
 export type WorkerConfig = Partial<WorkerOptions> | boolean | undefined | null
 export type Workers<QN extends string> = Record<QN, WorkerConfig>
-export type WorkerManagerOptions = {}
 
 export class WorkerManager<
   JNs extends string,
@@ -14,15 +13,12 @@ export class WorkerManager<
   J extends DefaultJob<JNs>,
 > {
   protected workers = {} as Record<QNs, ManagedWorker<JNs>>
-  protected options: WorkerManagerOptions
 
   constructor(
     workersConfig: Workers<QNs>,
     processor: (job: Job<any, any, JNs>) => Promise<unknown>,
     workerOptions: WorkerOptions,
-    options: WorkerManagerOptions = {},
   ) {
-    this.options = options
     const configIterator = Object.entries<WorkerConfig>(workersConfig)
 
     for (const [name, workerConfig] of configIterator) {

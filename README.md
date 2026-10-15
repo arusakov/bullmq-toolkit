@@ -139,7 +139,7 @@ await flowManager.addFlowJobs([flowA, flowB])
 ### `WorkerManager<JNs, QNs, J>`
 
 ```ts
-new WorkerManager(workers, processor, workerOptions, options?)
+new WorkerManager(workers, processor, workerOptions)
 ```
 
 | member             | description                                                                                         |
@@ -165,7 +165,7 @@ BullMQ v6 detects the driver itself: ioredis, node-redis and Bun clients are sup
   pass a client via the `connection` option instead.
 - `QueueManager.close()` now always closes the queues (previously it was a no-op if `waitUntilReady()` had not completed, which could leak connections).
 - Jobs routed to a disabled queue throw a descriptive error instead of a `TypeError`.
-- `WorkerManager`'s `options` argument is now optional.
+- `WorkerManager`'s unused `options` argument and `WorkerManagerOptions` type were removed.
 
 ## Development
 

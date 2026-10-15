@@ -3,7 +3,7 @@ import { equal, deepStrictEqual } from 'node:assert'
 
 import { type WorkerOptions, Job, type QueueOptions } from 'bullmq'
 
-import { WorkerManager, type WorkerManagerOptions, type Workers } from '../../src/WorkerManager.ts'
+import { WorkerManager, type Workers } from '../../src/WorkerManager.ts'
 import { type DefaultJob, type NameToQueue, type Queues, QueueManager } from '../../src/QueueManager.ts'
 
 import { createRedis } from '../utils.ts'
@@ -57,13 +57,10 @@ describe('Worker manager', () => {
             concurrency: 1
         }
 
-        const options: WorkerManagerOptions = {}
-
         workerManager = new WorkerManager<JobNames, QueueNames, DefaultJob<JobNames>>(
             workers,
             processor,
             workerOptions,
-            options
         )
 
         const queues: Queues<QueueNames> = {
