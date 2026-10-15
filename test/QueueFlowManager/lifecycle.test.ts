@@ -1,9 +1,9 @@
 import { describe, it, before, after, afterEach } from 'node:test'
-import { equal, deepStrictEqual, rejects } from 'node:assert'
+import { equal, rejects } from 'node:assert'
 
 import type { QueueOptions } from 'bullmq'
 
-import type { DefaultJob, FlowJob, NameToQueue, Queues } from '../../src/QueueManager.ts'
+import type { DefaultJob, NameToQueue, Queues } from '../../src/QueueManager.ts'
 import { QueueFlowManager } from '../../src/QueueFlowManager.ts'
 import { createRedis } from '../utils.ts'
 
