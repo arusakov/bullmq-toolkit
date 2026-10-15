@@ -1,4 +1,5 @@
-import { FlowProducer, QueueOptions, RedisConnection } from 'bullmq'
+import { FlowProducer } from 'bullmq'
+import type { QueueOptions, IQueueBackend } from 'bullmq'
 
 import type { DefaultJob, NameToQueue, Options, Queues } from './QueueManager'
 
@@ -15,18 +16,17 @@ export class QueueFlowManager<
   J extends DefaultJob<JNs>,
 > extends QueueManager<JNs, QNs, J> {
 
-  protected flowProducer: FlowProducer
+  protected flowProducer: FlowProducer<IQueueBackend>
 
   constructor(
     queues: Queues<QNs>,
     queueOptions: QueueOptions,
-    protected nameToQueue: NameToQueue<JNs, QNs>,
+    nameToQueue: NameToQueue<JNs, QNs>,
     options?: Options,
-    Connection?: typeof RedisConnection,
   ) {
-    super(queues, queueOptions, nameToQueue, options, Connection)
+    super(queues, queueOptions, nameToQueue, options)
 
-    this.flowProducer = new FlowProducer(queueOptions, Connection)
+    this.flowProducer = new FlowProducer(queueOptions)
   }
 
 
@@ -56,23 +56,21 @@ export class QueueFlowManager<
   }
 
   async close() {
-    if (!this.connected) {
-      return false
-    }
-
-    await Promise.all([
+    const [wasConnected] = await Promise.all([
       super.close(),
       this.flowProducer.close(),
     ])
-    return true
+    return wasConnected
   }
 
   private resolveQueueNames(job: FlowJob<JNs>): FlowJobReal<JNs> {
     const queueName = this.getQueueNameByJobName(job.name)
-    const resolvedJob: FlowJobReal<JNs> = {
-      ...job,
-      queueName,
-      children: job.children?.map(child => this.resolveQueueNames(child))
+    this.getEnabledQueue(queueName)
+
+    const { children, ...rest } = job
+    const resolvedJob: FlowJobReal<JNs> = { ...rest, queueName }
+    if (children) {
+      resolvedJob.children = children.map(child => this.resolveQueueNames(child))
     }
     return this.prepareJob(resolvedJob)  
   }

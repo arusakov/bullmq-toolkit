@@ -18,14 +18,14 @@
   ],
   "devDependencies": {
     "@types/node": "24.9.1",
-    "bullmq": "5.71.0",
+    "bullmq": "^6.3.15",
     "c8": "11.0.0",
     "ioredis": "5.9.3",
     "ts-node": "10.9.2",
     "typescript": "5.9.3"
   },
   "peerDependencies": {
-    "bullmq": "^5.8.3"
+    "bullmq": "^6.0.0"
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p . --outDir dist",

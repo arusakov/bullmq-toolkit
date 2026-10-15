@@ -1,11 +1,14 @@
 import { Queue } from 'bullmq'
-import type { QueueOptions, RedisConnection, BaseJobOptions } from 'bullmq'
+import type { QueueOptions, BaseJobOptions, IQueueBackend } from 'bullmq'
 
 
 // TODO use this type everywhere
 export type Job<J extends { name: string, data: unknown }> = J & {
   opts?: BaseJobOptions 
 }
+
+/** `Queue` as inferred by bullmq's constructor when no custom backend is given */
+export type ManagedQueue = Queue<any, any, string, any, any, string, IQueueBackend>
 
 export type QueueConfig = Partial<QueueOptions> | boolean | undefined | null
 export type Queues<QN extends string> = Record<QN, QueueConfig>
@@ -33,7 +36,7 @@ export class QueueManager<
   QNs extends string,
   J extends DefaultJob<JNs>,
 > {
-  protected queues = {} as Record<QNs, Queue>
+  protected queues = {} as Record<QNs, ManagedQueue>
   protected connected = false
   protected prepareJob: NonNullable<Options['prepareJob']>
 
@@ -42,7 +45,6 @@ export class QueueManager<
     queueOptions: QueueOptions,
     protected nameToQueue: NameToQueue<JNs, QNs>,
     protected options: Options = {},
-    Connection?: typeof RedisConnection,
   ) {
     this.prepareJob = options.prepareJob ?? PREPARE_JOB_DEFAULT
     const configIterator = Object.entries<QueueConfig>(queuesConfig)
@@ -55,7 +57,6 @@ export class QueueManager<
             ...queueOptions,
             ...(queueConfig === true ? undefined : queueConfig)
           },
-          Connection
         )
 
         this.queues[name as QNs] = queue
@@ -77,15 +78,14 @@ export class QueueManager<
   }
 
   async close() {
-    if (!this.connected) {
-      return false
-    }
-    
+    const wasConnected = this.connected
+
+    // always close queues: waitUntilReady() could have failed after opening some connections
     await Promise.all(
       this.getQueues().map((q) => q.close())
     )
     this.connected = false
-    return true
+    return wasConnected
   }
 
   getQueue(name: QNs) {
@@ -93,15 +93,15 @@ export class QueueManager<
   }
 
   getQueues() {
-    return Object.values<Queue>(this.queues)
+    return Object.values<ManagedQueue>(this.queues)
   }
 
   addJob(job: J) {
     this.checkConnected()
 
-    const queueName = this.getQueueNameByJobName(job.name)
+    const queue = this.getEnabledQueue(this.getQueueNameByJobName(job.name))
     const jobToAdd = this.prepareJob(job)
-    return this.queues[queueName].add(jobToAdd.name, jobToAdd.data, jobToAdd.opts)
+    return queue.add(jobToAdd.name, jobToAdd.data, jobToAdd.opts)
 
   }
 
@@ -111,6 +111,7 @@ export class QueueManager<
     const jobsPerQueue = {} as Record<QNs, J[] | undefined>
     for (const j of jobs) {
       const queueName = this.getQueueNameByJobName(j.name)
+      this.getEnabledQueue(queueName)
       let jobs = jobsPerQueue[queueName]
       if (!jobs) {
         jobsPerQueue[queueName] = jobs = []
@@ -128,6 +129,14 @@ export class QueueManager<
 
   getQueueNameByJobName(name: JNs) {
     return this.nameToQueue[name]
+  }
+
+  protected getEnabledQueue(name: QNs) {
+    const queue = this.queues[name]
+    if (!queue) {
+      throw new Error(`Queue "${name}" is not enabled in ${this.constructor.name}`)
+    }
+    return queue
   }
 
   protected checkConnected() {

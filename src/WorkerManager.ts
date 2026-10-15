@@ -1,5 +1,8 @@
-import { RedisConnection, Worker, WorkerOptions, Job } from 'bullmq'
+import { Worker } from 'bullmq'
+import type { WorkerOptions, Job, IQueueBackend } from 'bullmq'
 import type { DefaultJob, ConnectionStatus } from './QueueManager'
+
+export type ManagedWorker<JN extends string> = Worker<any, any, JN, IQueueBackend>
 
 export type WorkerConfig = Partial<WorkerOptions> | boolean | undefined | null
 export type Workers<QN extends string> = Record<QN, WorkerConfig>
@@ -10,27 +13,25 @@ export class WorkerManager<
   QNs extends string,
   J extends DefaultJob<JNs>,
 > {
-  protected workers = {} as Record<QNs, Worker<any, any, JNs>>
+  protected workers = {} as Record<QNs, ManagedWorker<JNs>>
 
   constructor(
     workersConfig: Workers<QNs>,
     processor: (job: Job<any, any, JNs>) => Promise<unknown>,
     workerOptions: WorkerOptions,
-    protected options: WorkerManagerOptions,
-    Connection?: typeof RedisConnection,
+    protected options: WorkerManagerOptions = {},
   ) {
     const configIterator = Object.entries<WorkerConfig>(workersConfig)
 
     for (const [name, workerConfig] of configIterator) {
       if (workerConfig) {
-        const worker = new Worker(
+        const worker = new Worker<any, any, JNs, IQueueBackend>(
           name,
           processor,
           {
             ...workerOptions,
             ...(workerConfig === true ? undefined : workerConfig),
           },
-          Connection
         )
 
         this.workers[name as QNs] = worker
@@ -41,7 +42,10 @@ export class WorkerManager<
   run() {
     for (const w of this.getWorkers()) {
       if (!w.isRunning()) {
-        w.run()
+        w.run().catch((err) => {
+          // run() rejects only on fatal startup errors; route them to the worker's error listeners
+          w.emit('error', err)
+        })
       }
     }
   }
@@ -63,6 +67,6 @@ export class WorkerManager<
   }
 
   getWorkers() {
-    return Object.values<Worker<any, any, JNs>>(this.workers)
+    return Object.values<ManagedWorker<JNs>>(this.workers)
   }
 }

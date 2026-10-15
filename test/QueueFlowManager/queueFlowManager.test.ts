@@ -1,9 +1,10 @@
 import { describe, it, before, after, afterEach } from 'node:test'
 import { equal, deepStrictEqual } from 'node:assert'
 
-import { QueueOptions, Queue } from 'bullmq'
+import { QueueOptions } from 'bullmq'
 
 import type { DefaultJob, NameToQueue, Options, Queues, FlowJob } from '../../src/QueueManager'
+import type { ManagedQueue } from '../../src/QueueManager'
 import { QueueFlowManager } from '../../src/QueueFlowManager'
 import { createRedis } from '../utils'
 
@@ -18,7 +19,7 @@ describe('Queue Flow manager', () => {
     const newJob: FlowJob<JobNames> = { name: 'Job1', data: {}, children: [childrenJob] }
     const newJobs: FlowJob<JobNames>[] = [newJob, newJob]
 
-    async function drainQueue(queue: Queue) {
+    async function drainQueue(queue: ManagedQueue) {
         await queue.drain()
         const waitingJobs = await queue.getJobs(['waiting-children', 'waiting'])
         for (const job of waitingJobs) {

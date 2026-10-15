@@ -1,5 +1,5 @@
 import { describe, it, before, after, afterEach } from 'node:test'
-import { equal } from 'node:assert'
+import { equal, deepStrictEqual } from 'node:assert'
 
 import { WorkerOptions, Job, QueueOptions } from 'bullmq'
 
@@ -149,5 +149,37 @@ describe('Worker manager', () => {
     it('close', async () => {
        await workerManager.close()
        await workerManager.close()
+    })
+
+    it('processes jobs and routes run() failures to the error event', async (ctx) => {
+        const processed: string[] = []
+        const wm = new WorkerManager<JobNames, QueueNames, DefaultJob<JobNames>>(
+            { Queue1: true, Queue2: false },
+            async (job) => { processed.push(job.name) },
+            { connection, autorun: false },
+        )
+        ctx.after(() => wm.close())
+
+        equal(wm.getWorkers().length, 1)
+        equal(wm.getWorker('Queue2'), undefined)
+
+        await queueManager.waitUntilReady()
+        await queueManager.addJob({ name: 'Job1', data: {} })
+        wm.run()
+
+        for (let i = 0; i < 50 && !processed.length; ++i) {
+            await new Promise(r => setTimeout(r, 20))
+        }
+        deepStrictEqual(processed, ['Job1'])
+
+        const worker = wm.getWorker('Queue1')
+        const failing = new Error('boom')
+        const errors: unknown[] = []
+        worker.on('error', (e) => errors.push(e))
+        ;(worker as any).isRunning = () => false
+        ;(worker as any).run = () => Promise.reject(failing)
+        wm.run()
+        await new Promise(r => setTimeout(r, 10))
+        deepStrictEqual(errors, [failing])
     })
 })
