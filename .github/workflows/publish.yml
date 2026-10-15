@@ -5,6 +5,10 @@ on:
     tags:
       - v*
 
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing (OIDC)
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -23,6 +27,9 @@ jobs:
 
       - run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version
 
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # prerelease versions (1.0.0-rc.1) go to the "next" dist-tag, not "latest"
+      - run: |
+          case "${GITHUB_REF_NAME#v}" in
+            *-*) npm publish --tag next ;;
+            *)   npm publish ;;
+          esac
