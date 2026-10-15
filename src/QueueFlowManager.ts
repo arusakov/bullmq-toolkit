@@ -1,7 +1,7 @@
 import { FlowProducer } from 'bullmq'
 import type { QueueOptions, IQueueBackend } from 'bullmq'
 
-import type { DefaultJob, NameToQueue, Options, Queues } from './QueueManager.ts'
+import type { DefaultJob, NameToQueue, Queues } from './QueueManager.ts'
 
 import { QueueManager, type FlowJob } from './QueueManager.ts'
 
@@ -22,9 +22,8 @@ export class QueueFlowManager<
     queues: Queues<QNs>,
     queueOptions: QueueOptions,
     nameToQueue: NameToQueue<JNs, QNs>,
-    options?: Options,
   ) {
-    super(queues, queueOptions, nameToQueue, options)
+    super(queues, queueOptions, nameToQueue)
 
     this.flowProducer = new FlowProducer(queueOptions)
   }
@@ -63,14 +62,14 @@ export class QueueFlowManager<
     return wasConnected
   }
 
-  private resolveQueueNames(job: FlowJob<JNs>): FlowJobReal<JNs> {
+  protected resolveQueueNames(job: FlowJob<JNs>): FlowJobReal<JNs> {
     const queueName = this.getQueueNameByJobName(job.name)
     const { children, ...rest } = job
     const resolvedJob: FlowJobReal<JNs> = { ...rest, queueName }
     if (children) {
       resolvedJob.children = children.map(child => this.resolveQueueNames(child))
     }
-    return this.prepareJob(resolvedJob)  
+    return resolvedJob
   }
 
 }

@@ -94,7 +94,7 @@ web process that only produces jobs vs. a worker process that only consumes some
 ### `QueueManager<JNs, QNs, J>`
 
 ```ts
-new QueueManager(queues, queueOptions, nameToQueue, options?)
+new QueueManager(queues, queueOptions, nameToQueue)
 ```
 
 | member                  | description                                                                                      |
@@ -110,13 +110,16 @@ new QueueManager(queues, queueOptions, nameToQueue, options?)
 Adding jobs before `waitUntilReady()` (or after `close()`) throws `... is not connected`.
 Do not route jobs to a queue you disabled in this process — list only the queues you enable in `QNs`/`nameToQueue`.
 
-**`options.prepareJob`** — a hook called for every job right before it is added.
-Use it to inject defaults, tracing ids, etc.:
+**Defaults for jobs** — use your own job creator functions (or subclass and override `addJob` / `addJobs`):
 
 ```ts
-new QueueManager(queues, queueOptions, nameToQueue, {
-  prepareJob: (job) => ({ ...job, opts: { removeOnComplete: true, ...job.opts } }),
+const emailJob = (to: string): DefaultJob<'SendEmail'> => ({
+  name: 'SendEmail',
+  data: { to },
+  opts: { removeOnComplete: true },
 })
+
+await queueManager.addJob(emailJob('a@b.c'))
 ```
 
 ### `QueueFlowManager<JNs, QNs, J>`
@@ -134,7 +137,7 @@ const flow = await flowManager.addFlowJob({
 await flowManager.addFlowJobs([flowA, flowB])
 ```
 
-`prepareJob` is applied to every node of the tree. `waitUntilReady()` / `close()` handle both queues and the flow producer.
+`waitUntilReady()` / `close()` handle both queues and the flow producer.
 
 ### `WorkerManager<JNs, QNs, J>`
 
@@ -165,6 +168,7 @@ BullMQ v6 detects the driver itself: ioredis, node-redis and Bun clients are sup
   pass a client via the `connection` option instead.
 - `QueueManager.close()` now always closes the queues (previously it was a no-op if `waitUntilReady()` had not completed, which could leak connections).
 - Jobs routed to a disabled queue throw a descriptive error instead of a `TypeError`.
+- `Options` / `prepareJob` hook was removed from `QueueManager` and `QueueFlowManager`: build jobs with your own creator functions or override `addJob` / `addJobs`.
 - `WorkerManager`'s unused `options` argument and `WorkerManagerOptions` type were removed.
 
 ## Development

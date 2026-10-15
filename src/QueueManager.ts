@@ -24,12 +24,6 @@ export type FlowJob<JN extends string> = DefaultJob<JN> & {
   children?: Array<FlowJob<JN>>
 }
 
-export type Options = {
-  prepareJob?: <J extends DefaultJob<string>>(job: J) => J
-}
-
-const PREPARE_JOB_DEFAULT: NonNullable<Options['prepareJob']> = (job) => job
-
 
 export class QueueManager<
   JNs extends string,
@@ -38,19 +32,14 @@ export class QueueManager<
 > {
   protected queues = {} as Record<QNs, ManagedQueue>
   protected connected = false
-  protected prepareJob: NonNullable<Options['prepareJob']>
   protected nameToQueue: NameToQueue<JNs, QNs>
-  protected options: Options
 
   constructor(
     queuesConfig: Queues<QNs>,
     queueOptions: QueueOptions,
     nameToQueue: NameToQueue<JNs, QNs>,
-    options: Options = {},
   ) {
     this.nameToQueue = nameToQueue
-    this.options = options
-    this.prepareJob = options.prepareJob ?? PREPARE_JOB_DEFAULT
     const configIterator = Object.entries<QueueConfig>(queuesConfig)
 
     for (const [name, queueConfig] of configIterator) {
@@ -104,8 +93,7 @@ export class QueueManager<
     this.checkConnected()
 
     const queueName = this.getQueueNameByJobName(job.name)
-    const jobToAdd = this.prepareJob(job)
-    return this.queues[queueName].add(jobToAdd.name, jobToAdd.data, jobToAdd.opts)
+    return this.queues[queueName].add(job.name, job.data, job.opts)
 
   }
 
@@ -119,7 +107,7 @@ export class QueueManager<
       if (!jobs) {
         jobsPerQueue[queueName] = jobs = []
       }
-      jobs.push(this.prepareJob(j))
+      jobs.push(j)
     }
 
     const added = await Promise.all(

@@ -22,9 +22,9 @@ describe('Queue flow manager lifecycle', () => {
   }
 
   const managers: Array<QueueFlowManager<JobNames, QueueNames, DefaultJob<JobNames>>> = []
-  const make = (options?: ConstructorParameters<typeof QueueFlowManager>[3]) => {
+  const make = () => {
     const m = new QueueFlowManager<JobNames, QueueNames, DefaultJob<JobNames>>(
-      queues, queueOptions, nameToQueue, options as any,
+      queues, queueOptions, nameToQueue,
     )
     managers.push(m)
     return m
@@ -66,14 +66,8 @@ describe('Queue flow manager lifecycle', () => {
     equal(node.children, undefined)
   })
 
-  it('applies prepareJob to every node of the flow', async () => {
-    const seen: string[] = []
-    const m = make({
-      prepareJob: (job) => {
-        seen.push(job.name)
-        return job
-      },
-    })
+  it('resolves queue names for every node of the flow', async () => {
+    const m = make()
     await m.waitUntilReady()
 
     const flow: FlowJob<JobNames> = {
@@ -83,8 +77,7 @@ describe('Queue flow manager lifecycle', () => {
     }
     const node = await m.addFlowJob(flow)
 
-    equal(node.children?.length, 2)
+    equal(node.job.queueName, 'Queue1')
     deepStrictEqual(node.children?.map(c => c.job.queueName), ['Queue2', 'Queue2'])
-    deepStrictEqual([...seen].sort(), ['Job1', 'Job2', 'Job2'])
   })
 })

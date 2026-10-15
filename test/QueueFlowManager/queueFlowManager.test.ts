@@ -3,7 +3,7 @@ import { equal, deepStrictEqual } from 'node:assert'
 
 import { type QueueOptions } from 'bullmq'
 
-import type { DefaultJob, NameToQueue, Options, Queues, FlowJob } from '../../src/QueueManager.ts'
+import type { DefaultJob, NameToQueue, Queues, FlowJob } from '../../src/QueueManager.ts'
 import type { ManagedQueue } from '../../src/QueueManager.ts'
 import { QueueFlowManager } from '../../src/QueueFlowManager.ts'
 import { createRedis } from '../utils.ts'
@@ -58,13 +58,10 @@ describe('Queue Flow manager', () => {
             Job2: 'Queue2',
         }
 
-        const options: Options = {}
-
         flowQueueManager = new QueueFlowManager<JobNames, QueueNames, DefaultJob<JobNames>>(
             queues,
             queueOptions,
             nameToQueue,
-            options
         )
 
         await flowQueueManager.waitUntilReady()

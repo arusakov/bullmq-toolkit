@@ -25,12 +25,9 @@ describe('Queue manager lifecycle', () => {
     Disabled: 'Off',
   }
 
-  const create = (options?: ConstructorParameters<typeof QueueManager>[3]) =>
-    new QueueManager<JobNames, QueueNames, DefaultJob<JobNames>>(queues, queueOptions, nameToQueue, options as any)
-
   const managers: Array<QueueManager<JobNames, QueueNames, DefaultJob<JobNames>>> = []
-  const make = (options?: Parameters<typeof create>[0]) => {
-    const m = create(options)
+  const make = () => {
+    const m = new QueueManager<JobNames, QueueNames, DefaultJob<JobNames>>(queues, queueOptions, nameToQueue)
     managers.push(m)
     return m
   }
@@ -42,7 +39,7 @@ describe('Queue manager lifecycle', () => {
   afterEach(async () => {
     await Promise.all(managers.splice(0).map(m => m.close()))
     for (const name of ['Queue1', 'Queue2']) {
-      const m = create()
+      const m = make()
       await m.waitUntilReady()
       await m.getQueue(name as QueueNames).obliterate({ force: true })
       await m.close()
@@ -76,24 +73,6 @@ describe('Queue manager lifecycle', () => {
   it('close() without waitUntilReady() returns false', async () => {
     const m = make()
     equal(await m.close(), false)
-  })
-
-  it('applies prepareJob in addJob() and addJobs()', async () => {
-    const seen: string[] = []
-    const m = make({
-      prepareJob: (job) => {
-        seen.push(job.name)
-        return { ...job, opts: { ...job.opts, jobId: `id-${job.name}-${seen.length}` } }
-      },
-    })
-    await m.waitUntilReady()
-
-    const single = await m.addJob({ name: 'Job1', data: 1 })
-    equal(single.id, 'id-Job1-1')
-
-    const bulk = await m.addJobs([{ name: 'Job1', data: 2 }, { name: 'Job2', data: 3 }])
-    deepStrictEqual(bulk.map(j => j.id).sort(), ['id-Job1-2', 'id-Job2-3'])
-    deepStrictEqual(seen, ['Job1', 'Job1', 'Job2'])
   })
 
   it('addJobs([]) is a no-op', async () => {
