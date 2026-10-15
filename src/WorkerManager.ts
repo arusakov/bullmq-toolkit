@@ -1,6 +1,6 @@
 import { Worker } from 'bullmq'
 import type { WorkerOptions, Job, IQueueBackend } from 'bullmq'
-import type { DefaultJob, ConnectionStatus } from './QueueManager'
+import type { DefaultJob, ConnectionStatus } from './QueueManager.ts'
 
 export type ManagedWorker<JN extends string> = Worker<any, any, JN, IQueueBackend>
 
@@ -14,13 +14,15 @@ export class WorkerManager<
   J extends DefaultJob<JNs>,
 > {
   protected workers = {} as Record<QNs, ManagedWorker<JNs>>
+  protected options: WorkerManagerOptions
 
   constructor(
     workersConfig: Workers<QNs>,
     processor: (job: Job<any, any, JNs>) => Promise<unknown>,
     workerOptions: WorkerOptions,
-    protected options: WorkerManagerOptions = {},
+    options: WorkerManagerOptions = {},
   ) {
+    this.options = options
     const configIterator = Object.entries<WorkerConfig>(workersConfig)
 
     for (const [name, workerConfig] of configIterator) {

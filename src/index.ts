@@ -1,3 +1,3 @@
-export * from './QueueManager'
-export * from './QueueFlowManager'
-export * from './WorkerManager'
+export * from './QueueManager.ts'
+export * from './QueueFlowManager.ts'
+export * from './WorkerManager.ts'

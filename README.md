@@ -173,6 +173,8 @@ npm run test:all            # REDIS_HOST / REDIS_PORT are respected
 npm run test:coverage
 ```
 
+Tests run on plain `node --test` (native TypeScript type stripping, Node 24+); no ts-node needed.
+
 > Tests call `FLUSHDB` — never point them at a Redis with data you care about.
 
 ## License

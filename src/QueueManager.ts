@@ -39,13 +39,17 @@ export class QueueManager<
   protected queues = {} as Record<QNs, ManagedQueue>
   protected connected = false
   protected prepareJob: NonNullable<Options['prepareJob']>
+  protected nameToQueue: NameToQueue<JNs, QNs>
+  protected options: Options
 
   constructor(
     queuesConfig: Queues<QNs>,
     queueOptions: QueueOptions,
-    protected nameToQueue: NameToQueue<JNs, QNs>,
-    protected options: Options = {},
+    nameToQueue: NameToQueue<JNs, QNs>,
+    options: Options = {},
   ) {
+    this.nameToQueue = nameToQueue
+    this.options = options
     this.prepareJob = options.prepareJob ?? PREPARE_JOB_DEFAULT
     const configIterator = Object.entries<QueueConfig>(queuesConfig)
 

@@ -1,12 +1,12 @@
 import { describe, it, before, after, afterEach } from 'node:test'
 import { equal, deepStrictEqual } from 'node:assert'
 
-import { QueueOptions } from 'bullmq'
+import { type QueueOptions } from 'bullmq'
 
-import type { DefaultJob, NameToQueue, Options, Queues, FlowJob } from '../../src/QueueManager'
-import type { ManagedQueue } from '../../src/QueueManager'
-import { QueueFlowManager } from '../../src/QueueFlowManager'
-import { createRedis } from '../utils'
+import type { DefaultJob, NameToQueue, Options, Queues, FlowJob } from '../../src/QueueManager.ts'
+import type { ManagedQueue } from '../../src/QueueManager.ts'
+import { QueueFlowManager } from '../../src/QueueFlowManager.ts'
+import { createRedis } from '../utils.ts'
 
 describe('Queue Flow manager', () => {
     type JobNames = 'Job1' | 'Job2'

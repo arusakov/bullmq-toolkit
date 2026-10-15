@@ -17,22 +17,21 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/node": "24.9.1",
+    "@types/node": "^26.6.5",
     "bullmq": "^6.3.15",
-    "c8": "11.0.0",
-    "ioredis": "5.9.3",
-    "ts-node": "10.9.2",
-    "typescript": "5.9.3"
+    "c8": "^12.0.0",
+    "ioredis": "^6.0.0",
+    "typescript": "^7.0.2"
   },
   "peerDependencies": {
     "bullmq": "^6.0.0"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc -p . --outDir dist",
+    "build": "rm -rf dist && tsc -p . --rootDir src --outDir dist",
     "compile": "tsc --noEmit -p .",
     "compile:test": "tsc --noEmit -p test",
-    "test:all": "npm run test ./test/**/*.test.ts",
+    "test:all": "npm run test -- ./test/**/*.test.ts",
     "test:coverage": "c8 --reporter=lcovonly --reporter=text npm run test:all",
-    "test": "node --test --test-concurrency=1 --require=ts-node/register"
+    "test": "node --test --test-concurrency=1"
   }
 }

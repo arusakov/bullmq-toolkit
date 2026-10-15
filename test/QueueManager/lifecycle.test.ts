@@ -3,9 +3,9 @@ import { equal, deepStrictEqual, rejects, throws } from 'node:assert'
 
 import type { QueueOptions } from 'bullmq'
 
-import { QueueManager } from '../../src/QueueManager'
-import type { DefaultJob, NameToQueue, Queues } from '../../src/QueueManager'
-import { createRedis } from '../utils'
+import { QueueManager } from '../../src/QueueManager.ts'
+import type { DefaultJob, NameToQueue, Queues } from '../../src/QueueManager.ts'
+import { createRedis } from '../utils.ts'
 
 type JobNames = 'Job1' | 'Job2' | 'Disabled'
 type QueueNames = 'Queue1' | 'Queue2' | 'Off'

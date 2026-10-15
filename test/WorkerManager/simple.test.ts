@@ -1,12 +1,12 @@
 import { describe, it, before, after, afterEach } from 'node:test'
 import { equal, deepStrictEqual } from 'node:assert'
 
-import { WorkerOptions, Job, QueueOptions } from 'bullmq'
+import { type WorkerOptions, Job, type QueueOptions } from 'bullmq'
 
-import { WorkerManager, WorkerManagerOptions, Workers } from '../../src/WorkerManager'
-import { DefaultJob, NameToQueue, Queues, QueueManager } from '../../src/QueueManager'
+import { WorkerManager, type WorkerManagerOptions, type Workers } from '../../src/WorkerManager.ts'
+import { type DefaultJob, type NameToQueue, type Queues, QueueManager } from '../../src/QueueManager.ts'
 
-import { createRedis } from '../utils'
+import { createRedis } from '../utils.ts'
 
 describe('Worker manager', () => {
     type JobNames1 = 'Job1'

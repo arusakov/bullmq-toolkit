@@ -1,10 +1,10 @@
 import { describe, it, before, after, afterEach } from 'node:test'
 import { equal,  rejects } from 'node:assert'
 
-import { QueueOptions, Job } from 'bullmq'
+import { type QueueOptions, Job } from 'bullmq'
 
-import { QueueManager, DefaultJob, Queues, NameToQueue } from '../../src/QueueManager'
-import { createRedis, sleep } from '../utils'
+import { QueueManager, type DefaultJob, type Queues, type NameToQueue } from '../../src/QueueManager.ts'
+import { createRedis, sleep } from '../utils.ts'
 
 describe('Queue manager', () => {
   type JobNames = 'Job1' | 'Job2'

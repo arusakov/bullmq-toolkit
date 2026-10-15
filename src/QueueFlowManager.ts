@@ -1,9 +1,9 @@
 import { FlowProducer } from 'bullmq'
 import type { QueueOptions, IQueueBackend } from 'bullmq'
 
-import type { DefaultJob, NameToQueue, Options, Queues } from './QueueManager'
+import type { DefaultJob, NameToQueue, Options, Queues } from './QueueManager.ts'
 
-import { QueueManager, FlowJob } from './QueueManager'
+import { QueueManager, type FlowJob } from './QueueManager.ts'
 
 export type FlowJobReal<JN extends string> = FlowJob<JN> & {
   queueName: string
