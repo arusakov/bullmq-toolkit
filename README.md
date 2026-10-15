@@ -157,6 +157,7 @@ BullMQ v6 detects the driver itself: ioredis, node-redis and Bun clients are sup
 
 ## Migration from 0.x
 
+- **ESM-only**: the package is now `"type": "module"`. CJS users on Node 22+ can still `require()` it.
 - `bullmq` peer dependency is now `^6.0.0`.
 - The last constructor argument `Connection?: typeof RedisConnection` was removed (no equivalent in BullMQ v6);
   pass a client via the `connection` option instead.

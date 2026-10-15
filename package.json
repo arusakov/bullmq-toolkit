@@ -13,6 +13,7 @@
   },
   "author": "Aleksandr Rusakov <aleksandr.s.rusakov@gmail.com>",
   "license": "MIT",
+  "type": "module",
   "files": [
     "dist"
   ],
@@ -33,5 +34,11 @@
     "test:all": "npm run test -- ./test/**/*.test.ts",
     "test:coverage": "c8 --reporter=lcovonly --reporter=text npm run test:all",
     "test": "node --test --test-concurrency=1"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   }
 }
