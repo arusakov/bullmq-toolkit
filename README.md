@@ -106,7 +106,7 @@ new QueueManager(queues, queueOptions, nameToQueue, options?)
 | `getQueueNameByJobName` | Resolves a queue name by job name.                                                               |
 
 Adding jobs before `waitUntilReady()` (or after `close()`) throws `... is not connected`.
-Adding a job that routes to a disabled queue throws `Queue "<name>" is not enabled ...`.
+Do not route jobs to a queue you disabled in this process — list only the queues you enable in `QNs`/`nameToQueue`.
 
 **`options.prepareJob`** — a hook called for every job right before it is added.
 Use it to inject defaults, tracing ids, etc.:

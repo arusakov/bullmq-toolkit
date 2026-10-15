@@ -87,13 +87,4 @@ describe('Queue flow manager lifecycle', () => {
     deepStrictEqual(node.children?.map(c => c.job.queueName), ['Queue2', 'Queue2'])
     deepStrictEqual([...seen].sort(), ['Job1', 'Job2', 'Job2'])
   })
-
-  it('throws a clear error for a disabled queue', async () => {
-    const m = make()
-    await m.waitUntilReady()
-    await rejects(
-      m.addFlowJob({ name: 'Job1', data: {}, children: [{ name: 'Disabled', data: {} }] }),
-      /Queue "Off" is not enabled/,
-    )
-  })
 })

@@ -78,13 +78,6 @@ describe('Queue manager lifecycle', () => {
     equal(await m.close(), false)
   })
 
-  it('throws a clear error for a job routed to a disabled queue', async () => {
-    const m = make()
-    await m.waitUntilReady()
-    throws(() => m.addJob({ name: 'Disabled', data: {} }), /Queue "Off" is not enabled/)
-    await rejects(m.addJobs([{ name: 'Disabled', data: {} }]), /Queue "Off" is not enabled/)
-  })
-
   it('applies prepareJob in addJob() and addJobs()', async () => {
     const seen: string[] = []
     const m = make({

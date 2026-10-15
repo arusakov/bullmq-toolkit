@@ -65,8 +65,6 @@ export class QueueFlowManager<
 
   private resolveQueueNames(job: FlowJob<JNs>): FlowJobReal<JNs> {
     const queueName = this.getQueueNameByJobName(job.name)
-    this.getEnabledQueue(queueName)
-
     const { children, ...rest } = job
     const resolvedJob: FlowJobReal<JNs> = { ...rest, queueName }
     if (children) {

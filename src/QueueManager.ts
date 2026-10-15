@@ -103,9 +103,9 @@ export class QueueManager<
   addJob(job: J) {
     this.checkConnected()
 
-    const queue = this.getEnabledQueue(this.getQueueNameByJobName(job.name))
+    const queueName = this.getQueueNameByJobName(job.name)
     const jobToAdd = this.prepareJob(job)
-    return queue.add(jobToAdd.name, jobToAdd.data, jobToAdd.opts)
+    return this.queues[queueName].add(jobToAdd.name, jobToAdd.data, jobToAdd.opts)
 
   }
 
@@ -115,7 +115,6 @@ export class QueueManager<
     const jobsPerQueue = {} as Record<QNs, J[] | undefined>
     for (const j of jobs) {
       const queueName = this.getQueueNameByJobName(j.name)
-      this.getEnabledQueue(queueName)
       let jobs = jobsPerQueue[queueName]
       if (!jobs) {
         jobsPerQueue[queueName] = jobs = []
@@ -133,14 +132,6 @@ export class QueueManager<
 
   getQueueNameByJobName(name: JNs) {
     return this.nameToQueue[name]
-  }
-
-  protected getEnabledQueue(name: QNs) {
-    const queue = this.queues[name]
-    if (!queue) {
-      throw new Error(`Queue "${name}" is not enabled in ${this.constructor.name}`)
-    }
-    return queue
   }
 
   protected checkConnected() {
